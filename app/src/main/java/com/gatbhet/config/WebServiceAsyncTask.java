@@ -7,6 +7,7 @@ import android.widget.Toast;
 
 import com.gatbhet.model.TokenRequest;
 import com.gatbhet.model.TokenResponse;
+import com.gatbhet.services.LoginWebService;
 import com.gatbhet.services.TokenWebService;
 import com.gatbhet.R;
 
@@ -42,29 +43,12 @@ public class WebServiceAsyncTask extends AsyncTask {
         super.onPostExecute(o);
         progressDialog.dismiss();
         TokenResponse tokenResponse = (TokenResponse)o;
+        String request_token = tokenResponse.getData().getRequest_token();
         Util.log("Login","Request Token : " + tokenResponse.getData().getRequest_token());
-        String timeStamp = Util.getTimeStamp();
-        Util.log("Login","Time Stamp : " + timeStamp);
-        HashMap<String,String> params = new HashMap<String, String>();
-        HashMap<String,String> header = new HashMap<String, String>();
-        params.put("timestamp",timeStamp);
-        params.put("request_token", tokenResponse.getData().getRequest_token());
-        params.put("request_for","alerts");//alerts,audio,profile
-        params.put("caller_ref_id","9766363775");
-        params.put("long","50");
-        params.put("lat","100");
+        LoginWebService loginWebService = new LoginWebService(request_token);
+        GenericWebServiceAsyncTask genericWebServiceAsyncTask = new GenericWebServiceAsyncTask(loginWebService,context);
 
 
-        try {
-            Util.log("Login","Security Token : " + Util.createSecurityToken(tokenResponse.getData().getRequest_token(),timeStamp,params));
-            String security_token= Util.createSecurityToken(tokenResponse.getData().getRequest_token(),timeStamp,params);
-
-            header.put("Content-Type","text/xml;charset=windows-1250");
-            header.put("Security-Token",security_token);
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
         Toast.makeText(context,"Request Sent Successfully",Toast.LENGTH_SHORT).show();
     }
 

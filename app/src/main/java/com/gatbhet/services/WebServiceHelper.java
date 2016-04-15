@@ -59,7 +59,7 @@ public class WebServiceHelper {
         URL url = null;
         HttpURLConnection urlConnection = null;
         try {
-            url = new URL(Constants.WEB_SERVICE_URL + webService.getURLParams() + "?" + webService.getKeyValueQueryParam());
+            url = new URL(webService.getURL() + webService.getURLParams() + "?" + webService.getKeyValueQueryParam());
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod(webService.getMethodType());
             for(String key : webService.getHeader().keySet()){

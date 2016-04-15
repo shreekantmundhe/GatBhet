@@ -8,7 +8,9 @@ import java.util.HashMap;
 public interface IWebService {
     public HashMap<String, String> getHeader();
     public String getMethodType();
+    public String getURL();
     public String getBody();
     public String getURLParams();
     public String getKeyValueQueryParam();
+    public String getResponse();
 }
