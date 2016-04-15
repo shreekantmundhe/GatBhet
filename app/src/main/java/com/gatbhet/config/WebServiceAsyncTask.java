@@ -46,7 +46,7 @@ public class WebServiceAsyncTask extends AsyncTask {
         String timeStamp = Util.getTimeStamp();
         Util.log("Login","Time Stamp : " + timeStamp);
         HashMap<String,String> params = new HashMap<String, String>();
-
+        HashMap<String,String> header = new HashMap<String, String>();
         params.put("timestamp",timeStamp);
         params.put("request_token", tokenResponse.getData().getRequest_token());
         params.put("request_for","alerts");//alerts,audio,profile
@@ -57,6 +57,11 @@ public class WebServiceAsyncTask extends AsyncTask {
 
         try {
             Util.log("Login","Security Token : " + Util.createSecurityToken(tokenResponse.getData().getRequest_token(),timeStamp,params));
+            String security_token= Util.createSecurityToken(tokenResponse.getData().getRequest_token(),timeStamp,params);
+
+            header.put("Content-Type","text/xml;charset=windows-1250");
+            header.put("Security-Token",security_token);
+
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
