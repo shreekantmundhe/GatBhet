@@ -60,11 +60,15 @@ public class WebServiceHelper {
         HttpURLConnection urlConnection = null;
         try {
             url = new URL(webService.getURL() + webService.getURLParams() + "?" + webService.getKeyValueQueryParam());
+            Util.log("URL","Request : "+ url.toString());
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod(webService.getMethodType());
             for(String key : webService.getHeader().keySet()){
+                Util.log("Header","key : " + key);
+                Util.log("Header","value : " + webService.getHeader().get(key));
                 urlConnection.setRequestProperty(key,webService.getHeader().get(key));
             }
+
 //            urlConnection.setRequestProperty();
             //urlConnection.setRequestProperty(Constants.WS_CONTENT_TYPE, Constants.JSON);
             urlConnection.setReadTimeout(Constants.TIME_OUT);

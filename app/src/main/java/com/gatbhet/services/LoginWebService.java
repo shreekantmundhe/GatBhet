@@ -22,10 +22,10 @@ public class LoginWebService implements IWebService {
             headers = new HashMap<String, String>();
             requestParams.put("timestamp",timeStamp);
             requestParams.put("request_token", request_token);
-            requestParams.put("request_for","alerts");//alerts,audio,profile
+            requestParams.put("request_for","profile");//alerts,audio,profile
             requestParams.put("caller_ref_id","9766363775");
-            requestParams.put("long","50");
-            requestParams.put("lat","100");
+           // requestParams.put("long","50");
+           // requestParams.put("lat","100");
             Util.log("Login","Security Token : " + Util.createSecurityToken(request_token,timeStamp,requestParams));
             String security_token= Util.createSecurityToken(request_token,timeStamp,requestParams);
             headers.put("Content-Type","text/xml;charset=windows-1250");
@@ -76,14 +76,7 @@ public class LoginWebService implements IWebService {
 
     @Override
     public String getKeyValueQueryParam() {
-        StringBuffer keyValuePairRequest = new StringBuffer();
-        for (String key : requestParams.keySet()) {
-            keyValuePairRequest.append(key + "=" + requestParams.get(key) + "&");
-        }
 
-        if(keyValuePairRequest.length()>0){
-            return keyValuePairRequest.substring(0,keyValuePairRequest.length()-1);
-        }
-        return null;
+        return Util.getKeyValueQueryParam(requestParams);
     }
 }

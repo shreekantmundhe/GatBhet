@@ -47,6 +47,7 @@ public class WebServiceAsyncTask extends AsyncTask {
         Util.log("Login","Request Token : " + tokenResponse.getData().getRequest_token());
         LoginWebService loginWebService = new LoginWebService(request_token);
         GenericWebServiceAsyncTask genericWebServiceAsyncTask = new GenericWebServiceAsyncTask(loginWebService,context);
+        genericWebServiceAsyncTask.execute();
 
 
         Toast.makeText(context,"Request Sent Successfully",Toast.LENGTH_SHORT).show();
