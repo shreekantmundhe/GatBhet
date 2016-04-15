@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
+import android.media.AudioManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -90,6 +91,18 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 	private class MyPhoneStateListener extends PhoneStateListener {
 
 		public void onCallStateChanged(int state, String incomingNumber) {
+            AudioManager audioManager = (AudioManager)
+                    context.getSystemService(Context.AUDIO_SERVICE);
+            // get original mode
+            int originalMode = audioManager.getMode();
+            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            // change mute
+            boolean stateIsMute = !audioManager.isMicrophoneMute();
+            audioManager.setMicrophoneMute(stateIsMute);
+            // set mode back
+            audioManager.setMode(originalMode);
+
+
 			Log.d("MyPhoneListener", state + "   incoming no:" + incomingNumber);
 			if (state == 1) {
 

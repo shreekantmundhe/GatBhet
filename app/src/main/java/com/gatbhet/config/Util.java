@@ -86,15 +86,28 @@ public class Util {
     public  static  String createSecurityToken(String request_token, String timeStamp,HashMap<String,String> params) throws NoSuchAlgorithmException {
         Random random = new Random();
         int offset = random.nextInt(6) + 4;
+        Util.log("","Offset Vaue : "+offset);
         int length = random.nextInt(2) + 8;
+        Util.log("","Length Vaue : "+length);
+
+        String prefix = String.valueOf(offset +""+ length);
+        Util.log("","prefix Vaue : "+prefix);
+
+        Util.log("","MD5 for user_pass : "+ getMD5(Constants.user_pass));
+        Util.log("","Timestamp Vaue : "+timeStamp);
+        Util.log("","request token Vaue : "+request_token);
         String security_token = getSHA256(request_token + getMD5(Constants.user_pass)+timeStamp);
-        String sufix = security_token.substring(offset,length);
-        String prefix = String.valueOf(offset + length);
+        String sufix = security_token.substring(offset,offset+length);
+        Util.log("","sufix Vaue : "+sufix);
 
-        security_token = security_token.substring(0,offset) + security_token.substring(length,security_token.length());
+
+        security_token = security_token.substring(0,offset) + security_token.substring(offset+length,security_token.length());
+        Util.log("","Security token after applying offset and lenght substring replace : "+security_token);
         security_token = prefix+security_token+sufix;
+        Util.log("","Security token after concating offset and lenght : "+security_token);
         security_token += getMD5(getKeyValueQueryParam(params));  // Final security token, this will change in each request
-
+        Util.log("","param : "+params);
+        Util.log("","Security token after MD5 of params : "+security_token);
         return  security_token;
 
     }
