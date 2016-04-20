@@ -1,7 +1,12 @@
 package com.gatbhet.config;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 
+import com.gatbhet.R;
 import com.gatbhet.config.Constants;
 
 import java.io.BufferedReader;
@@ -134,4 +139,16 @@ public class Util {
         return keyValuePairRequest.toString();
     }
 
+    public static void displayNotification(Context context){
+        android.support.v4.app.NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle("Gatbhet")
+                        .setContentText("This is sample notification");
+        NotificationManager mNotificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+// mId allows you to update the notification later on.
+        mNotificationManager.notify(Constants.MID, mBuilder.build());
+
+    }
 }

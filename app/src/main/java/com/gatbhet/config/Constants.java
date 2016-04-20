@@ -19,4 +19,5 @@ public class Constants {
     public static final String ACCEPT = "Accept";
     public static final boolean IS_LOGGING_ENABLED = true;
     public static final String user_pass = "111111";
+    public static final int MID = 121;
 }
