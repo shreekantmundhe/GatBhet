@@ -14,10 +14,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.gatbhet.R;
+import com.gatbhet.config.Util;
 
 public class IncomingCallReceiver extends BroadcastReceiver {
 	private Context context;
@@ -43,15 +45,14 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 				System.out.println("RETAIL : Inside the if block");
                 wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
                 params1 = new WindowManager.LayoutParams(
-                        LayoutParams.MATCH_PARENT,
-                        LayoutParams.MATCH_PARENT, 
-                        WindowManager.LayoutParams.TYPE_SYSTEM_OVERLAY,
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                        PixelFormat.TRANSPARENT);
+                        LayoutParams.WRAP_CONTENT,
+                        LayoutParams.WRAP_CONTENT,
+                        WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL ,
+                        PixelFormat.TRANSLUCENT);
                 params1.gravity = Gravity.TOP;		
-                params1.height = 75;
-                params1.width = 512;
+                params1.height = 90;
+                params1.width = 100;
                 params1.x = 265; 
                 params1.y = 200;
                 params1.format = PixelFormat.TRANSLUCENT;
@@ -63,6 +64,13 @@ public class IncomingCallReceiver extends BroadcastReceiver {
                 ly1.setOrientation(LinearLayout.VERTICAL);
 
                 View hiddenInfo = ((LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.calling_layout, ly1, false);
+                    ((Button)hiddenInfo.findViewById(R.id.mute)).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Util.log("MUTE","Button clicked");
+                            Toast.makeText(IncomingCallReceiver.this.context,"Mute button clicked",Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 ly1.addView(hiddenInfo);
                 System.out.println("RETAIL : Adding the layout...");
                 wm.addView(ly1, params1);
