@@ -4,4 +4,12 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="loading_text">Loading..please wait</string>
+    <string name="login">Login</string>
+    <string name="username">username</string>
+    <string name="password">password</string>
+    <string name="mobile">mobile</string>
+    <string name="invalid_credentials">Username or password is incorrect.</string>
+    <string name="credentials_blank">Username or password can not be blank.</string>
+    <string name="credentials_minimum_length">Username or password should have minimum 7 characters.</string>
+    <string name="mobile_minimum_length">Mobile number should have minimum 10 digits.</string>
 </resources>
