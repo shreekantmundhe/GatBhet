@@ -20,6 +20,19 @@ import java.util.HashMap;
  */
 public class WebServiceAsyncTask extends AsyncTask {
 
+    public interface WebServiceResponseListener{
+        public void onResponseReceived(String response);
+    }
+    private WebServiceResponseListener webServiceResponseListener;
+
+    public WebServiceResponseListener getWebServiceResponseListener() {
+        return webServiceResponseListener;
+    }
+
+    public void setWebServiceResponseListener(WebServiceResponseListener webServiceResponseListener) {
+        this.webServiceResponseListener = webServiceResponseListener;
+    }
+
     private Context context;
     private ProgressDialog progressDialog;
 
@@ -28,29 +41,38 @@ public class WebServiceAsyncTask extends AsyncTask {
 
     }
 
+    public WebServiceAsyncTask() {
+    }
+
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-
-        progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage(context.getResources().getString(R.string.loading_text));
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+        if(context != null) {
+            progressDialog = new ProgressDialog(context);
+            progressDialog.setMessage(context.getResources().getString(R.string.loading_text));
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+        }
     }
 
     @Override
     protected void onPostExecute(Object o) {
         super.onPostExecute(o);
-        progressDialog.dismiss();
+        if(context != null) {
+            progressDialog.dismiss();
+        }
         TokenResponse tokenResponse = (TokenResponse)o;
         String request_token = tokenResponse.getData().getRequest_token();
         Util.log("Login","Request Token : " + tokenResponse.getData().getRequest_token());
-        LoginWebService loginWebService = new LoginWebService(request_token);
-        GenericWebServiceAsyncTask genericWebServiceAsyncTask = new GenericWebServiceAsyncTask(loginWebService,context);
-        genericWebServiceAsyncTask.execute();
+        if(webServiceResponseListener != null) {
+            webServiceResponseListener.onResponseReceived(tokenResponse.getData().getRequest_token());
+        }
+//        LoginWebService loginWebService = new LoginWebService(request_token);
+//        GenericWebServiceAsyncTask genericWebServiceAsyncTask = new GenericWebServiceAsyncTask(loginWebService,context);
+//        genericWebServiceAsyncTask.execute();
 
 
-        Toast.makeText(context,"Request Sent Successfully",Toast.LENGTH_SHORT).show();
+//        Toast.makeText(context,"Request Sent Successfully",Toast.LENGTH_SHORT).show();
     }
 
     @Override

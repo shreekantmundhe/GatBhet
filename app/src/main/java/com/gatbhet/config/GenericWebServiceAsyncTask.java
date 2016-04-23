@@ -16,6 +16,23 @@ public class GenericWebServiceAsyncTask extends AsyncTask<Void,Void,String> {
     private Context context;
     private ProgressDialog progressDialog;
 
+    public GenericWebServiceAsyncTask(IWebService service) {
+        this.service = service;
+    }
+
+    public interface GenericWebServiceResponseListener{
+        public void onGenericResponseReceived(String response);
+    }
+    private GenericWebServiceResponseListener webServiceResponseListener;
+
+    public GenericWebServiceResponseListener getWebServiceResponseListener() {
+        return webServiceResponseListener;
+    }
+
+    public void setWebServiceResponseListener(GenericWebServiceResponseListener webServiceResponseListener) {
+        this.webServiceResponseListener = webServiceResponseListener;
+    }
+
     IWebService service;
     public GenericWebServiceAsyncTask(IWebService service,Context context) {
         this.service = service;
@@ -25,11 +42,12 @@ public class GenericWebServiceAsyncTask extends AsyncTask<Void,Void,String> {
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-
-        progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage(context.getResources().getString(R.string.loading_text));
-        progressDialog.setCancelable(false);
-        progressDialog.show();
+        if(context!=null) {
+            progressDialog = new ProgressDialog(context);
+            progressDialog.setMessage(context.getResources().getString(R.string.loading_text));
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+        }
     }
 
     @Override
@@ -40,9 +58,12 @@ public class GenericWebServiceAsyncTask extends AsyncTask<Void,Void,String> {
     @Override
     protected void onPostExecute(String response) {
         super.onPostExecute(response);
-        progressDialog.dismiss();
+        if(context!= null) {
+            progressDialog.dismiss();
+        }
         if(service instanceof LoginWebService){
             Util.log("LoginWebService", "Response : " + response );
+            webServiceResponseListener.onGenericResponseReceived(response);
         }
 
     }

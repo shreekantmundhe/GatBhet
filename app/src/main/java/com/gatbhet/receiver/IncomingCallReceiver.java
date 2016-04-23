@@ -3,9 +3,11 @@ package com.gatbhet.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -14,14 +16,20 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.gatbhet.R;
+import com.gatbhet.config.GenericWebServiceAsyncTask;
 import com.gatbhet.config.Util;
+import com.gatbhet.config.WebServiceAsyncTask;
+import com.gatbhet.model.TokenResponse;
+import com.gatbhet.services.LoginWebService;
+import com.google.gson.Gson;
 
-public class IncomingCallReceiver extends BroadcastReceiver {
+import java.io.IOException;
+
+public class IncomingCallReceiver extends BroadcastReceiver implements  WebServiceAsyncTask.WebServiceResponseListener,GenericWebServiceAsyncTask.GenericWebServiceResponseListener {
 	private Context context;
 	private WindowManager wm;
     private static LinearLayout ly1;
@@ -31,6 +39,7 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
 		try {
+            Util.log("Call Receiver","Incoming call event");
 			this.context = context;
 			String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
 			// TELEPHONY MANAGER class object to register one listner
@@ -41,7 +50,7 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 			// Register listener for LISTEN_CALL_STATE
 			tmgr.listen(PhoneListener, PhoneStateListener.LISTEN_CALL_STATE);
 		
-			if(state.equals(TelephonyManager.EXTRA_STATE_RINGING)||state.equals(TelephonyManager.EXTRA_STATE_RINGING)){
+			if(state.equals(TelephonyManager.EXTRA_STATE_RINGING)||state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
 				System.out.println("RETAIL : Inside the if block");
                 wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
                 params1 = new WindowManager.LayoutParams(
@@ -50,27 +59,23 @@ public class IncomingCallReceiver extends BroadcastReceiver {
                         WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
                         WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL ,
                         PixelFormat.TRANSLUCENT);
-                params1.gravity = Gravity.TOP;		
-                params1.height = 90;
-                params1.width = 100;
-                params1.x = 265; 
+                params1.gravity = Gravity.TOP;
+                params1.height = 100;
+                params1.width = 700;
+                params1.x = 265;
                 params1.y = 200;
                 params1.format = PixelFormat.TRANSLUCENT;
                 if(ly1==null){
                 	//wm.removeView(ly1);
-                
+
                 ly1 = new LinearLayout(context);
                 ly1.setBackgroundColor(Color.BLACK);
                 ly1.setOrientation(LinearLayout.VERTICAL);
+                    WebServiceAsyncTask webServiceAsyncTask = new WebServiceAsyncTask();
+                    webServiceAsyncTask.setWebServiceResponseListener(this);
+                    webServiceAsyncTask.execute();
 
-                View hiddenInfo = ((LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.calling_layout, ly1, false);
-                    ((Button)hiddenInfo.findViewById(R.id.mute)).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Util.log("MUTE","Button clicked");
-                            Toast.makeText(IncomingCallReceiver.this.context,"Mute button clicked",Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                View hiddenInfo = ((LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.incoming_call, ly1, false);
                 ly1.addView(hiddenInfo);
                 System.out.println("RETAIL : Adding the layout...");
                 wm.addView(ly1, params1);
@@ -96,29 +101,115 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 //		Toast.makeText(context, "Call Received", Toast.LENGTH_SHORT).show();
 	}
 
-	private class MyPhoneStateListener extends PhoneStateListener {
+    @Override
+    public void onResponseReceived(String response) {
+        Util.log("In Response when call","This is calling"+response);
+        LoginWebService loginWebService = new LoginWebService(response);
+        GenericWebServiceAsyncTask genericWebServiceAsyncTask = new GenericWebServiceAsyncTask(loginWebService);
+        genericWebServiceAsyncTask.setWebServiceResponseListener(this);
+
+        genericWebServiceAsyncTask.execute();
+
+
+
+    }
+
+    @Override
+    public void onGenericResponseReceived(String response) {
+        Gson gson = new Gson();
+        TokenResponse data = gson.fromJson(response,TokenResponse.class);
+        Util.log("This is phone numer","phone number output"+data);
+    }
+
+    private class MyPhoneStateListener extends PhoneStateListener {
 
 		public void onCallStateChanged(int state, String incomingNumber) {
-            AudioManager audioManager = (AudioManager)
-                    context.getSystemService(Context.AUDIO_SERVICE);
-            // get original mode
-            int originalMode = audioManager.getMode();
-            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            // change mute
-            boolean stateIsMute = !audioManager.isMicrophoneMute();
-            audioManager.setMicrophoneMute(stateIsMute);
-            // set mode back
-            audioManager.setMode(originalMode);
+
+            if(state ==TelephonyManager.CALL_STATE_OFFHOOK) {
+                Util.log("MUTE","Button clicked first");
+
+                wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+                params1 = new WindowManager.LayoutParams(
+                        LayoutParams.WRAP_CONTENT,
+                        LayoutParams.WRAP_CONTENT,
+                        WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL ,
+                        PixelFormat.TRANSLUCENT);
+                params1.gravity = Gravity.TOP;
+                params1.height = 400;
+                params1.width = 400;
+                params1.x = 265;
+                params1.y = 200;
+                params1.format = PixelFormat.TRANSLUCENT;
+                if(ly1==null){
+                    //wm.removeView(ly1);
+
+                    ly1 = new LinearLayout(context);
+                    ly1.setBackgroundColor(Color.BLACK);
+                    ly1.setOrientation(LinearLayout.VERTICAL);
+
+                    View hiddenInfo = ((LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.calling_layout, ly1, false);
+                    hiddenInfo.findViewById(R.id.mute).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Util.log("MUTE","Button clicked");
+                            AudioManager audioManager = (AudioManager)
+                                    context.getSystemService(Context.AUDIO_SERVICE);
+                            // get original mode
+                            int originalMode = audioManager.getMode();
+                            audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                            // change mute
+                            boolean stateIsMute = !audioManager.isMicrophoneMute();
+                            audioManager.setMicrophoneMute(stateIsMute);
+                            // set mode back
+                            audioManager.setMode(originalMode);
 
 
-			Log.d("MyPhoneListener", state + "   incoming no:" + incomingNumber);
-			if (state == 1) {
+                            //audio
 
-				String msg = "New Phone Call Event. Incomming Number : "
-						+ incomingNumber;
-				//Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+                            AssetFileDescriptor afd = null;
+        try {
+            afd = IncomingCallReceiver.this.context.getAssets().openFd("gbaudio.mp3");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        MediaPlayer player;
+        player = new MediaPlayer();
+        try {
+            player.setDataSource(afd.getFileDescriptor(),afd.getStartOffset(),afd.getLength());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            player.prepare();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+                            if(player.isPlaying()){
+                                player.stop();
+                            }else {
+                                player.start();
+                            }
 
-			}
+
+                            //end audio
+                        }
+                    });
+                    ly1.addView(hiddenInfo);
+                    System.out.println("RETAIL : Adding the layout...");
+                    wm.addView(ly1, params1);
+                }
+
+
+                Log.d("MyPhoneListener", state + "   incoming no:" + incomingNumber);
+                if (state == 1) {
+
+                    String msg = "New Phone Call Event. Incomming Number : "
+                            + incomingNumber;
+                    //Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+
+                }
+            }
 		}
 	}
 }
