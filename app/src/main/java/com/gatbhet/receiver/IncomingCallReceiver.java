@@ -20,11 +20,16 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.gatbhet.R;
+import com.gatbhet.config.GenericWebServiceAsyncTask;
 import com.gatbhet.config.Util;
+import com.gatbhet.config.WebServiceAsyncTask;
+import com.gatbhet.model.TokenResponse;
+import com.gatbhet.services.LoginWebService;
+import com.google.gson.Gson;
 
 import java.io.IOException;
 
-public class IncomingCallReceiver extends BroadcastReceiver {
+public class IncomingCallReceiver extends BroadcastReceiver implements  WebServiceAsyncTask.WebServiceResponseListener,GenericWebServiceAsyncTask.GenericWebServiceResponseListener {
 	private Context context;
 	private WindowManager wm;
     private static LinearLayout ly1;
@@ -34,6 +39,7 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
 		// TODO Auto-generated method stub
 		try {
+            Util.log("Call Receiver","Incoming call event");
 			this.context = context;
 			String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
 			// TELEPHONY MANAGER class object to register one listner
@@ -46,38 +52,34 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 		
 			if(state.equals(TelephonyManager.EXTRA_STATE_RINGING)||state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
 				System.out.println("RETAIL : Inside the if block");
-//                wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-//                params1 = new WindowManager.LayoutParams(
-//                        LayoutParams.WRAP_CONTENT,
-//                        LayoutParams.WRAP_CONTENT,
-//                        WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
-//                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL ,
-//                        PixelFormat.TRANSLUCENT);
-//                params1.gravity = Gravity.TOP;
-//                params1.height = 90;
-//                params1.width = 100;
-//                params1.x = 265;
-//                params1.y = 200;
-//                params1.format = PixelFormat.TRANSLUCENT;
-//                if(ly1==null){
-//                	//wm.removeView(ly1);
-//
-//                ly1 = new LinearLayout(context);
-//                ly1.setBackgroundColor(Color.BLACK);
-//                ly1.setOrientation(LinearLayout.VERTICAL);
-//
-//                View hiddenInfo = ((LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.calling_layout, ly1, false);
-//                    hiddenInfo.findViewById(R.id.mute).setOnClickListener(new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//                            Util.log("MUTE","Button clicked");
-//                            Toast.makeText(IncomingCallReceiver.this.context,"Mute button clicked",Toast.LENGTH_SHORT).show();
-//                        }
-//                    });
-//                //ly1.addView(hiddenInfo);
-//                System.out.println("RETAIL : Adding the layout...");
-//                //wm.addView(ly1, params1);
-//                }
+                wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+                params1 = new WindowManager.LayoutParams(
+                        LayoutParams.WRAP_CONTENT,
+                        LayoutParams.WRAP_CONTENT,
+                        WindowManager.LayoutParams.TYPE_SYSTEM_ERROR,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL ,
+                        PixelFormat.TRANSLUCENT);
+                params1.gravity = Gravity.TOP;
+                params1.height = 100;
+                params1.width = 700;
+                params1.x = 265;
+                params1.y = 200;
+                params1.format = PixelFormat.TRANSLUCENT;
+                if(ly1==null){
+                	//wm.removeView(ly1);
+
+                ly1 = new LinearLayout(context);
+                ly1.setBackgroundColor(Color.BLACK);
+                ly1.setOrientation(LinearLayout.VERTICAL);
+                    WebServiceAsyncTask webServiceAsyncTask = new WebServiceAsyncTask();
+                    webServiceAsyncTask.setWebServiceResponseListener(this);
+                    webServiceAsyncTask.execute();
+
+                View hiddenInfo = ((LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE)).inflate(R.layout.incoming_call, ly1, false);
+                ly1.addView(hiddenInfo);
+                System.out.println("RETAIL : Adding the layout...");
+                wm.addView(ly1, params1);
+                }
             }
 
             // To remove the view once the dialer app is closed.
@@ -99,7 +101,27 @@ public class IncomingCallReceiver extends BroadcastReceiver {
 //		Toast.makeText(context, "Call Received", Toast.LENGTH_SHORT).show();
 	}
 
-	private class MyPhoneStateListener extends PhoneStateListener {
+    @Override
+    public void onResponseReceived(String response) {
+        Util.log("In Response when call","This is calling"+response);
+        LoginWebService loginWebService = new LoginWebService(response);
+        GenericWebServiceAsyncTask genericWebServiceAsyncTask = new GenericWebServiceAsyncTask(loginWebService);
+        genericWebServiceAsyncTask.setWebServiceResponseListener(this);
+
+        genericWebServiceAsyncTask.execute();
+
+
+
+    }
+
+    @Override
+    public void onGenericResponseReceived(String response) {
+        Gson gson = new Gson();
+        TokenResponse data = gson.fromJson(response,TokenResponse.class);
+        Util.log("This is phone numer","phone number output"+data);
+    }
+
+    private class MyPhoneStateListener extends PhoneStateListener {
 
 		public void onCallStateChanged(int state, String incomingNumber) {
 

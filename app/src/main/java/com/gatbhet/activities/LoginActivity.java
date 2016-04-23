@@ -25,6 +25,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
+import com.google.android.gms.common.server.converter.StringToIntConverter;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
@@ -33,20 +34,26 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+
+public class LoginActivity extends AppCompatActivity implements WebServiceAsyncTask.WebServiceResponseListener,View.OnClickListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private static final int REQUEST_LOCATION = 14441;
     private static final int REQUEST_CHECK_SETTINGS = 1211;
     private EditText username, password, mobile;
     private Button login;
     private GoogleApiClient googleApiClient;
+    private WebView webView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         findAllViews();
+        login.setOnClickListener(this);
 
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(this)
@@ -56,20 +63,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     .build();
         }
 
-        checkLocationSettings();
+        //checkLocationSettings();
         checkLocationPermission();
 
 
-        new WebServiceAsyncTask(this).execute();
-
-        WebView myWebView = (WebView) findViewById(R.id.webview);
-        myWebView.setWebViewClient(new WebViewClient() {
+        WebServiceAsyncTask webServiceAsyncTask = new WebServiceAsyncTask(this);
+        webServiceAsyncTask.execute();
+        webServiceAsyncTask.setWebServiceResponseListener(this);
+        webView = (WebView) findViewById(R.id.webview);
+        webView.setWebViewClient(new WebViewClient() {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);
                 return true;
             }
         });
-        myWebView.loadUrl("http://dev.mulikainfotech.com/gathbhet.com/");
+
+
         Util.displayNotification(this);
     }
 
@@ -113,6 +122,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private void executeLogin() {
         //TODO Async task should be started here
+        new WebServiceAsyncTask(this).execute();
     }
 
     private int validateUserCredentials() {
@@ -303,6 +313,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         Toast.makeText(this,"Connection suspended",Toast.LENGTH_SHORT).show();
     }
 
+
     @Override
     public void onLocationChanged(Location location) {
         Util.log("Location","Location changed : lat : " + location.getLatitude() + " long : " + location.getLongitude());
@@ -313,5 +324,25 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onConnectionFailed(ConnectionResult connectionResult) {
         Util.log("Location","Connection failed");
         Toast.makeText(this,"Connection failed",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onResponseReceived(String response) {
+        try {
+            Map<String, String> extraHeaders = new HashMap<String, String>();
+            String timeStamp = Util.getTimeStamp();
+            Util.log("Login","Time Stamp : " + timeStamp);
+            HashMap<String,String> requestParams = new HashMap<String, String>();
+            requestParams.put("timestamp",timeStamp);
+            requestParams.put("request_token", response);
+            requestParams.put("request_for","profile");//alerts,audio,profile
+            requestParams.put("caller_ref_id","9766363775");
+            extraHeaders.put("security_token",Util.createSecurityToken(response,Util.getTimeStamp(),requestParams));
+            extraHeaders.put("security_token","SPT-288");
+            webView.loadUrl("http://dev.mulikainfotech.com/gathbhet.com/",extraHeaders);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
     }
 }
