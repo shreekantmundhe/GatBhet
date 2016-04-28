@@ -8,24 +8,22 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 
+import com.gatbhet.config.GenericWebServiceAsyncTask;
 import com.gatbhet.config.Util;
+import com.gatbhet.config.WebServiceAsyncTask;
+import com.gatbhet.services.LoginWebService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
-
-import java.util.List;
-import java.util.Map;
-
 /**
  * Created by ADMINIBM on 4/23/2016.
  */
-public class BackgroundGPSService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+public class BackgroundGPSService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, WebServiceAsyncTask.WebServiceResponseListener,GenericWebServiceAsyncTask.GenericWebServiceResponseListener {
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
      *
@@ -36,7 +34,7 @@ public class BackgroundGPSService extends Service implements GoogleApiClient.Con
     private static final int REQUEST_CHECK_SETTINGS = 1211;
     private static final String NAME = "Location";
     private GoogleApiClient googleApiClient;
-
+    private String latitude,longitude;
 
 
     @Override
@@ -53,6 +51,11 @@ public class BackgroundGPSService extends Service implements GoogleApiClient.Con
     @Override
     public void onLocationChanged(Location location) {
         Util.log("Location", "Location changed");
+        latitude = String.valueOf(location.getLatitude());
+        longitude = String.valueOf(location.getLongitude());
+        WebServiceAsyncTask webServiceAsyncTask = new WebServiceAsyncTask();
+        webServiceAsyncTask.setWebServiceResponseListener(this);
+
     }
 
     @Override
@@ -109,10 +112,20 @@ public class BackgroundGPSService extends Service implements GoogleApiClient.Con
         googleApiClient.disconnect();
     }
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
+    @Override
+    public void onResponseReceived(String response) {
+       GenericWebServiceAsyncTask genericWebServiceAsyncTask = new GenericWebServiceAsyncTask(new LoginWebService(response,"alerts","9766363775",latitude,longitude));
+        genericWebServiceAsyncTask.setWebServiceResponseListener(this);
+
+    }
+
+    @Override
+    public void onGenericResponseReceived(String response) {
+        Util.log("Alerts",response);
+    }
 }

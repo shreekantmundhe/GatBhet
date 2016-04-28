@@ -36,7 +36,7 @@ public class LoginWebService implements IWebService {
 
     }
 
-    public LoginWebService(String request_token,String request_for,String caller_ref_id){
+    public LoginWebService(String request_token,String request_for,String caller_ref_id,String latitude,String longitude){
         try {
             String timeStamp = Util.getTimeStamp();
             Util.log("Login","Time Stamp : " + timeStamp);
@@ -44,10 +44,10 @@ public class LoginWebService implements IWebService {
             headers = new HashMap<String, String>();
             requestParams.put("timestamp",timeStamp);
             requestParams.put("request_token", request_token);
-            requestParams.put("request_for","profile");//alerts,audio,profile
-            requestParams.put("caller_ref_id","9766363775");
-            // requestParams.put("long","50");
-            // requestParams.put("lat","100");
+            requestParams.put("request_for",request_for);//alerts,audio,profile
+            requestParams.put("caller_ref_id",caller_ref_id);
+            requestParams.put("long",latitude);
+            requestParams.put("lat",longitude);
             Util.log("Login","Security Token : " + Util.createSecurityToken(request_token,timeStamp,requestParams));
             String security_token= Util.createSecurityToken(request_token,timeStamp,requestParams);
             headers.put("Content-Type","text/xml;charset=windows-1250");
