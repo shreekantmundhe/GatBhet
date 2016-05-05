@@ -75,7 +75,7 @@ public class LoginActivity extends AppCompatActivity implements WebServiceAsyncT
         });
 
 
-        Util.displayNotification(this);
+//        Util.displayNotification(this);
     }
 
     @Override

@@ -11,14 +11,22 @@ import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 
 import com.gatbhet.config.GenericWebServiceAsyncTask;
+import com.gatbhet.config.NotificationAsyncTask;
 import com.gatbhet.config.Util;
 import com.gatbhet.config.WebServiceAsyncTask;
+import com.gatbhet.model.Alert;
+import com.gatbhet.model.TokenResponse;
 import com.gatbhet.services.LoginWebService;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.gson.Gson;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Created by ADMINIBM on 4/23/2016.
@@ -55,7 +63,7 @@ public class BackgroundGPSService extends Service implements GoogleApiClient.Con
         longitude = String.valueOf(location.getLongitude());
         WebServiceAsyncTask webServiceAsyncTask = new WebServiceAsyncTask();
         webServiceAsyncTask.setWebServiceResponseListener(this);
-
+        webServiceAsyncTask.execute();
     }
 
     @Override
@@ -83,8 +91,8 @@ public class BackgroundGPSService extends Service implements GoogleApiClient.Con
     private LocationRequest getLocationRequest() {
         Util.log("Location", "Requesting for location");
         LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(5000);
-        locationRequest.setFastestInterval(5000);
+        locationRequest.setInterval(60000);
+        locationRequest.setFastestInterval(60000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         return locationRequest;
     }
@@ -119,13 +127,24 @@ public class BackgroundGPSService extends Service implements GoogleApiClient.Con
 
     @Override
     public void onResponseReceived(String response) {
+        Util.log("GPS Service","Token Response : " + response);
        GenericWebServiceAsyncTask genericWebServiceAsyncTask = new GenericWebServiceAsyncTask(new LoginWebService(response,"alerts","9766363775",latitude,longitude));
         genericWebServiceAsyncTask.setWebServiceResponseListener(this);
-
+        genericWebServiceAsyncTask.execute();
     }
 
     @Override
     public void onGenericResponseReceived(String response) {
+
         Util.log("Alerts",response);
+        Gson gson = new Gson();
+        TokenResponse tokenResponse = gson.fromJson(response, TokenResponse.class);
+        Util.log("Alerts","Alerts Length : " + tokenResponse.getData().getAlerts().size());
+//        NotificationAsyncTask notificationAsyncTask = new NotificationAsyncTask(getApplicationContext());
+//        notificationAsyncTask.execute(tokenResponse.getData().getAlerts().toArray(new Alert[tokenResponse.getData().getAlerts().size()]));
+        for (Alert alert: tokenResponse.getData().getAlerts()
+             ) {
+            Util.displayNotification(getApplicationContext(),alert.getAtitle(),alert.getAmsg());
+        }
     }
 }

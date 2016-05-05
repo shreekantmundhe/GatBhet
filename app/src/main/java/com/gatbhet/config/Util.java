@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -42,8 +43,8 @@ public class Util {
             while ((read = br.readLine()) != null) {
                 //System.out.println(read);
                 sb.append(read);
-                br.close();
             }
+            br.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -159,6 +160,34 @@ public class Util {
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 // mId allows you to update the notification later on.
         mNotificationManager.notify(Constants.MID, mBuilder.build());
+
+    }
+
+    public static void displayNotification(Context context,String title,String content,Bitmap bitmap){
+        android.support.v4.app.NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle("Gatbhet")
+                        .setContentText("This is sample notification");
+        NotificationManager mNotificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+// mId allows you to update the notification later on.
+        mNotificationManager.notify(Constants.MID, mBuilder.build());
+
+    }
+
+    public static void displayNotification(Context context,String title,String content){
+        android.support.v4.app.NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle(title)
+                        .setStyle(new NotificationCompat.BigTextStyle()
+                                .bigText(content));
+//                        .setContentText(content);
+        NotificationManager mNotificationManager =
+                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+// mId allows you to update the notification later on.
+        mNotificationManager.notify(content,Constants.MID, mBuilder.build());
 
     }
 
