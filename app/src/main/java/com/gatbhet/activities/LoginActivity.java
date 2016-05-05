@@ -40,7 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class LoginActivity extends AppCompatActivity implements WebServiceAsyncTask.WebServiceResponseListener,View.OnClickListener{
+public class LoginActivity extends AppCompatActivity implements WebServiceAsyncTask.WebServiceResponseListener,View.OnClickListener,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
     private static final int REQUEST_LOCATION = 14441;
     private static final int REQUEST_CHECK_SETTINGS = 1211;
@@ -59,7 +59,7 @@ public class LoginActivity extends AppCompatActivity implements WebServiceAsyncT
         Intent intent = new Intent(this,BackgroundGPSService.class);
         startService(intent);
 
-        checkLocationSettings();
+
 //        checkLocationPermission();
 
 
@@ -76,6 +76,20 @@ public class LoginActivity extends AppCompatActivity implements WebServiceAsyncT
 
 
         Util.displayNotification(this);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Util.log("Location", "Service started");
+        if (googleApiClient == null) {
+            googleApiClient = new GoogleApiClient.Builder(getApplicationContext())
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+        googleApiClient.connect();
     }
 
     private void findAllViews() {
@@ -228,6 +242,21 @@ public class LoginActivity extends AppCompatActivity implements WebServiceAsyncT
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
+
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        checkLocationSettings();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
 
     }
 }
