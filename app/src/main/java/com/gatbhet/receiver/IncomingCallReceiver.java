@@ -151,7 +151,7 @@ public class IncomingCallReceiver extends BroadcastReceiver implements WebServic
                     public void onCompletion(MediaPlayer mp) {
                         Util.log("Call Receiver","Phone state changed to mute.");
                         audioManager.setSpeakerphoneOn(false);
-                        audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+//                        audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
                         audioManager.setMicrophoneMute(stateIsMute);
                     }
                 });

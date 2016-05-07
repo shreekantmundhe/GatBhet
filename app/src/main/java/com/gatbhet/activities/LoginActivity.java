@@ -63,16 +63,16 @@ public class LoginActivity extends AppCompatActivity implements WebServiceAsyncT
 //        checkLocationPermission();
 
 
-        WebServiceAsyncTask webServiceAsyncTask = new WebServiceAsyncTask(this);
+        /*WebServiceAsyncTask webServiceAsyncTask = new WebServiceAsyncTask(this);
         webServiceAsyncTask.execute();
-        webServiceAsyncTask.setWebServiceResponseListener(this);
-        webView = (WebView) findViewById(R.id.webview);
+        webServiceAsyncTask.setWebServiceResponseListener(this);*/
+        /*webView = (WebView) findViewById(R.id.webview);
         webView.setWebViewClient(new WebViewClient() {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);
                 return true;
             }
-        });
+        });*/
 
 
 //        Util.displayNotification(this);
@@ -97,6 +97,14 @@ public class LoginActivity extends AppCompatActivity implements WebServiceAsyncT
         password = (EditText) findViewById(R.id.et_password);
         mobile = (EditText) findViewById(R.id.et_mobile_number);
         login = (Button) findViewById(R.id.btn_login);
+        webView = (WebView) findViewById(R.id.webview);
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.setWebViewClient(new WebViewClient() {
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                view.loadUrl(url);
+                return true;
+            }
+        });
     }
 
     @Override
@@ -122,13 +130,16 @@ public class LoginActivity extends AppCompatActivity implements WebServiceAsyncT
 
     private void executeLogin() {
         //TODO Async task should be started here
-        new WebServiceAsyncTask(this).execute();
+        WebServiceAsyncTask webServiceAsyncTask = new WebServiceAsyncTask(this);
+        webServiceAsyncTask.execute();
+        webServiceAsyncTask.setWebServiceResponseListener(this);
     }
 
     private int validateUserCredentials() {
-        if (username.getText().length() == 0 || password.getText().length() == 0) {
+        //TODO remove all the false values from conditions below
+        if (username.getText().length() == 0 || password.getText().length() == 0 && false) {
             return R.string.credentials_blank;
-        } else if (username.getText().length() >= 7 || password.getText().length() >= 7) {
+        } else if (username.getText().length() < 7 || password.getText().length() < 7 && false) {
             return R.string.credentials_minimum_length;
         } else if (mobile.getText().length() != 10) {
             return R.string.mobile_minimum_length;
@@ -228,17 +239,20 @@ public class LoginActivity extends AppCompatActivity implements WebServiceAsyncT
     @Override
     public void onResponseReceived(String response) {
         try {
+            //TODO we need to pass username password and mobile number for authentication of user
             Map<String, String> extraHeaders = new HashMap<String, String>();
             String timeStamp = Util.getTimeStamp();
-            Util.log("Login","Time Stamp : " + timeStamp);
+            Util.log("Login", "Time Stamp : " + timeStamp);
             HashMap<String,String> requestParams = new HashMap<String, String>();
             requestParams.put("timestamp",timeStamp);
             requestParams.put("request_token", response);
             requestParams.put("request_for","profile");//alerts,audio,profile
+//            requestParams.put("caller_ref_id",mobile.getText().toString());
             requestParams.put("caller_ref_id","9766363775");
-            extraHeaders.put("security_token",Util.createSecurityToken(response,Util.getTimeStamp(),requestParams));
-            extraHeaders.put("security_token","SPT-288");
-            webView.loadUrl("http://dev.mulikainfotech.com/gathbhet.com/",extraHeaders);
+            extraHeaders.put("security_token", Util.createSecurityToken(response, Util.getTimeStamp(), requestParams));
+            webView.setVisibility(View.VISIBLE);
+//            webView.loadUrl("http://dev.mulikainfotech.com/gathbhet.com/",extraHeaders);
+            webView.loadUrl("http://dev.mulikainfotech.com/gathbhet.com/");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
